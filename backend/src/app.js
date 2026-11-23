@@ -8,11 +8,14 @@ import stockRoute from "./routes/stockRoute.js";
 import productRoute from "./routes/productRoute.js";
 import productionOrderRoute from "./routes/productionOrderRoute.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import cors from 'cors'
 
 export const openapi = YAML.load(fileURLToPath(new URL("../docs/openapi.yaml", import.meta.url)));
 const app = express();
 app.disable("x-powered-by");
 app.use(express.json());
+app.use(cors({origin: "http://localhost:5173"
+}))
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 app.get("/openapi.json", (req, res) => res.json(openapi));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapi));
