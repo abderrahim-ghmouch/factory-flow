@@ -33,7 +33,7 @@ test("JWT logout and verification", async (t) => {
     });
     t.mock.method(User, "findOne", async () => ({
         _id: "user-123", name: "Test", email: "test@example.com",
-        password: await bcrypt.hash("password", 4)
+        password: await bcrypt.hash("password", 4), role: "ADMIN"
     }));
 
     const app = express();
@@ -61,6 +61,7 @@ test("JWT logout and verification", async (t) => {
         });
         assert.equal(response.status, 200);
         const body = await response.json();
+        assert.equal(body.info_user.role, "ADMIN");
         return body.token;
     };
 
@@ -70,7 +71,9 @@ test("JWT logout and verification", async (t) => {
         assert.notEqual(first, second);
         const claims = jwt.verify(first, process.env.SECRET_KEY);
         assert.equal(claims.exp - claims.iat, 86400);
-        assert.equal((await request("me", first)).status, 200);
+        const me = await request("me", first);
+        assert.equal(me.status, 200);
+        assert.equal((await me.json()).user.role, "ADMIN");
         const response = await request("logout", first);
         assert.equal(response.status, 200);
         assert.equal((await response.json()).message_succes, "Deconnexion reussie");

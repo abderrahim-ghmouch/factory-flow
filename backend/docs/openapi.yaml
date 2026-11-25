@@ -826,12 +826,18 @@ components:
             email:
               type: string
               format: email
+            role:
+              type: string
+              enum: [ADMIN, OPERATOR]
     Claims:
       type: object
       properties:
         sub:
           type: string
           description: 'Authenticated user ID'
+        role:
+          type: string
+          enum: [ADMIN, OPERATOR]
         iat:
           type: integer
         exp:

@@ -32,7 +32,7 @@ export async function login(data = {}) {
         throw new ServiceError(400, "email ou mot de passe incorrect");
     }
     if (!process.env.SECRET_KEY) throw new ServiceError(500, "La cle JWT SECRET_KEY est introuvable");
-    const token = jwt.sign({ sub: user._id.toString() }, process.env.SECRET_KEY, { expiresIn: "1d", jwtid: randomUUID() });
+    const token = jwt.sign({ sub: user._id.toString(), role: user.role }, process.env.SECRET_KEY, { expiresIn: "1d", jwtid: randomUUID() });
     return { token, user };
 }
 

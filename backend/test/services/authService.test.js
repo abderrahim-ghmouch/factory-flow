@@ -39,17 +39,19 @@ test("login creates a verifiable token and logout revokes its hash until expiry"
     const previousSecret = process.env.SECRET_KEY;
     process.env.SECRET_KEY = "service-test-secret";
     t.after(() => { if (previousSecret === undefined) delete process.env.SECRET_KEY; else process.env.SECRET_KEY = previousSecret; });
-    t.mock.method(users, "findByEmail", async () => ({ _id: "user", password: await bcrypt.hash("secret", 4) }));
+    t.mock.method(users, "findByEmail", async () => ({ _id: "user", role: "OPERATOR", password: await bcrypt.hash("secret", 4) }));
     t.mock.method(revoked, "existsByHash", async () => null);
     const revoke = t.mock.method(revoked, "revoke", async () => {});
     const { token } = await service.login({ email: "test@example.com", password: "secret" });
     const { claims, tokenHash } = await service.verifyAccessToken(token);
     assert.equal(claims.sub, "user");
+    assert.equal(claims.role, "OPERATOR");
     assert.equal(claims.exp - claims.iat, 86400);
     assert.match(tokenHash, /^[a-f0-9]{64}$/);
     await service.logout(tokenHash, claims);
     assert.deepEqual(revoke.mock.calls[0].arguments[0], { tokenHash, expiresAt: new Date(claims.exp * 1000) });
     assert.equal(jwt.verify(token, process.env.SECRET_KEY).sub, "user");
+    assert.equal(jwt.verify(token, process.env.SECRET_KEY).role, "OPERATOR");
 });
 
 test("login rejects an unknown account and propagates repository failures", async t => {
